@@ -1,0 +1,111 @@
+.chatContainer{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100vw;
+  height: 100vh;
+}
+.chatBox{
+  max-width: 600px;
+  width: 100%;
+  max-height: 80vh;
+  height: 100%;
+  border-radius: 25px;
+  box-shadow: 0px 5px 15px 5px #00000010;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.chatHeader, .chatFooter{
+  height: 60px;
+  background-color: #007dff;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+}
+.chatBody{
+  height: calc(100% - 100px);
+}
+.chatHeader{
+  border-radius: 15px 15px 0px 0px;
+}
+.chatHeader .iconChat{
+  width: 60px;
+  text-align: center;
+  padding: 0px 5px;
+}
+.chatHeader img{
+  width: 70%;
+  margin-top: 5%;
+}
+.chatHeader h3{
+  font-weight: 600;
+}
+.chatFooter{
+  border-radius: 0px 0px 15px 15px;
+}
+.chatFooter form{
+  width: 100%;
+  border-radius: 2rem;
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  gap: 5px;
+}
+.chatFooter form input {
+  width: 90%;
+  background-color: transparent;
+  color: #eeeeee;
+  border: solid 2px #ffffff50;
+  border-radius: 25px;
+  padding: 8px 15px;
+  font-size: 1rem;
+  outline: none;
+}
+.chatFooter form input::placeholder {
+  color: #dddddd;
+}
+.chatFooter form input:focus{
+  border: solid 2px #ddd;
+}
+.chatFooter form button {
+  padding: 5px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: transparent;
+  color: #ffffff;
+  border: none;
+  font-size: 2rem;
+  width: 10%;
+}
+.msgs{
+  padding: 20px;
+}
+/* menor a 600 */
+@media only screen and (max-width: 600px) {
+  .chatContainer{
+    display: block;
+    height: 100vh;
+    background-color: #007dff;
+  }
+  .chatBox{
+    background-color: #ffffff;
+    max-width: auto;
+    max-height: 99.9vh;
+    height: 100%;
+    padding: 0px;
+    border-radius: 0px;
+    box-shadow: none;
+    display: flex;
+  }
+  .chatHeader, .chatFooter{
+    border-radius: 0px;
+  }
+  .chatFooter form input {
+    width: 87%;
+  }
+  .chatFooter form button {
+    width: 13%;
+  }
+}

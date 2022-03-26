@@ -1,0 +1,10 @@
+[
+  {
+    "email": "test@gmail.com",
+    "name": "Admin user",
+    "password": "$2b$10$YAOVIazcUCwe12AplJjD0uMe0fjQQf9u/3/USgF4GtM1RGoEyU/4y",
+    "hasAcount": true,
+    "phone": "",
+    "tempid": ""
+  }
+]

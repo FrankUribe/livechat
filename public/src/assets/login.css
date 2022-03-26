@@ -1,0 +1,59 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@800");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@600");
+.loginContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100vw;
+  height: 100vh;
+}
+.loginBox {
+  max-width: 280px;
+  width: 100%;
+  padding: 50px 20px;
+  border-radius: 25px;
+  box-shadow: 0px 5px 15px 5px #00000010;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+}
+.loginBox h3{
+  border-style: solid;
+  border-color: #007dff;
+  border-width: 0px 0px 3px 0px;
+}
+.loginBox form{
+  margin-top: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 80%;
+}
+.loginBox form input, .loginBox form button{  
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  border-radius: 15px;
+  padding: 5px 10px;
+  outline: 0;
+}
+.loginBox form input{
+  border: solid 2px #cccccc;
+}
+.loginBox form input:focus{
+  border: solid 2px #007dff;
+}
+.loginBox form button{
+  border: solid 2px #007dff;
+  background-color: #007dff;
+  color: #ffffff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s ease-in-out;
+}
+.loginBox form button:hover{
+  border: solid 2px #002f61;
+  background-color: #002f61;
+  transition: 0.3s ease-in-out;
+}
