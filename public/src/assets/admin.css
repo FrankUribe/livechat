@@ -1,0 +1,266 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@800");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@600");
+body{
+  font-family: 'Inter', sans-serif;
+}
+.loader-fh{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+.lds-dual-ring {
+  display: inline-block;
+}
+.lds-dual-ring:after {
+  content: " ";
+  display: block;
+  width: 40px;
+  height: 40px;
+  margin: 8px;
+  border-radius: 50%;
+  border: 6px solid #002f61;
+  border-color: #002f61 transparent #002f61 transparent;
+  animation: lds-dual-ring 1.2s linear infinite;
+}
+@keyframes lds-dual-ring {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.adminContainer{
+  width: 100%;
+  height: 100vh;
+  background-image: url("./morph2.jpg");
+  background:linear-gradient(0deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.7)), url("./morph2.jpg");
+  background-size: cover;
+  /*Optional*/
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.adminBox{
+  width: 90vw;
+  height: 90vh;
+  background-color: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(10px);
+  border-radius: 25px;
+  display: grid;
+  grid-template-columns: 80px 300px calc(100% - 380px);
+}
+.panel{
+  background-color: #fff;
+  border-radius: 25px 0px 0px 25px;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.panel img{
+  width: 100%;
+}
+.panel ul{
+  list-style-type: none;
+  width: 100%;
+  padding: 0;
+  background-color: transparent;
+  border: none;
+  border-radius: 50px;
+  color: #aaa;
+  font-size: 30px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 50px;
+  cursor: pointer;
+}
+.panel ul .panel-icon{
+  padding: 8px;
+  transition: 0.2s ease-in-out;
+}
+.panel ul .panel-icon:hover{
+  color: #007dff;
+  transition: 0.2s ease-in-out;
+}
+.panel button{
+  width: 100%;
+  padding: 0;
+  background-color: transparent;
+  border: none;
+  border-radius: 50px;
+  color: #aaa;
+  font-size: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 50px;
+  cursor: pointer;
+  transition: 0.2s ease-in-out;
+}
+.panel button:hover{
+  color: #d41313;
+  transition: 0.2s ease-in-out;
+}
+.options{
+  background-color: #ffffff80;
+}
+.chat{
+  padding: 15px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.btn{  
+  font-family: 'Inter', sans-serif;
+  background-color: #eee;
+  border: none;
+  padding: 4px 15px 6px;
+  border-radius: 15px;
+  font-size: 16px;
+  margin: 0px 2px;
+  cursor: pointer;
+  transition: 0.2s ease-in-out;
+}
+.btn:hover{
+  transform: scale(1.03);
+  box-shadow: 3px 3px 5px 0px #00000020;
+  transition: 0.2s ease-in-out;
+}
+.btn-primary{
+  background-color: #007dff;
+  color: #fff;
+}
+.btn-danger{
+  background-color: #c51f1f;
+  color: #fff;
+}
+
+/* Contacts Css */
+.contacts{
+  display: flex;
+  flex-direction: column;
+}
+.contacts .contact{
+  transition: 0.3s ease-in-out;
+  display: grid;
+  padding: 10px;
+  grid-template-columns: 45px calc(100% - 45px);
+  border-style: solid;
+  border-width: 0px 0px 1px 0px;
+  border-color: #eee;
+  cursor: pointer;
+}
+.contacts .contact.selected{
+  transition: 0.3s ease-in-out;
+  background-color: #007dff;
+}
+.contacts .contact.selected .username b{
+  color: #fff;
+}
+.contacts .contact.selected .username span{
+  color: #eee;
+}
+.contacts .contact .profilepic{
+  background-color: #e4f7ff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  height: 45px;
+  border-radius: 45px;
+  font-size: 14px;
+  color: #444;
+}
+.contacts .contact .username{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 45px;
+  padding-left: 5px;
+}
+.contacts .contact .username span{
+  font-size: 13px;
+  color: #666;
+}
+/* End Contacts Css */
+/* Chat Container CSS */
+.chatContainerAdmin{
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.adminContainer .chat-header{
+  display: grid;
+  grid-template-columns: 40px calc(100% - 100px) 40px;
+  height: 40px;
+  gap: 10px;
+}
+.adminContainer .chat-header .avatar{
+  width: 40px;
+  height: 40px;
+  text-align: center;
+  line-height: 40px;
+  background-color: #007dff;
+  color: #fff;
+  border-radius: 40px;
+}
+.adminContainer .chat-header .username{
+  line-height: 40px;
+}
+.adminContainer .chat-header button{
+  cursor: pointer;
+  background-color: transparent;
+  color: #444;
+  font-size: 20px;
+  border: none;
+}
+.chatContainerAdmin .chat-input{
+  height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.chatContainerAdmin .chat-input .emoji:first-child{
+  display: flex;
+  justify-content: center;
+  color: #fff;
+  background-color: #888;
+  height: 40px;
+  border-radius: 40px;
+  width: 42px;
+}
+.chatContainerAdmin .chat-input .emoji button{
+  cursor: pointer;
+}
+.chatContainerAdmin .chat-input form{
+  width: 100%;
+  display: grid;
+  grid-template-columns: calc(100% - 60px) 60px;
+}
+.chatContainerAdmin .chat-input form input{
+  outline: none;
+  border: solid 2px #ddd;
+  background-color: #ffffffdd;
+  font-size: 16px;
+  padding: 8px;
+  border-radius: 10px;
+  color: #666;
+}
+.chatContainerAdmin .chat-input form button{
+  border: none;
+  background-color: transparent;
+  color: #007dff;
+  font-size: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}

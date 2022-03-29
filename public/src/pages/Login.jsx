@@ -1,6 +1,6 @@
 import '../assets/login.css'
-import { useState } from "react";
 import { useNavigate } from "react-router-dom"
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -11,7 +11,13 @@ export default function Login() {
   const [values, setValues] = useState({
     email: "",
     password: "",
-  })  
+  })
+  useEffect(() => {
+    if (localStorage.getItem('authUser')) {
+      navigate("/admin");
+    }
+  }, [])
+  
   const toastOptions = {
     position: "top-right",
     autoClose: 4000,
@@ -59,7 +65,8 @@ export default function Login() {
         toast.error(data.msg, toastOptions)
       }
       if (data.status === true) {
-        localStorage.setItem('chat-app-user', JSON.stringify(data.user))
+        delete data.user.password
+        localStorage.setItem('authUser', JSON.stringify(data.user))
         navigate("/admin");
       }
     }

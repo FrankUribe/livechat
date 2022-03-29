@@ -1,30 +1,138 @@
 import '../assets/live.css'
-import { useState, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
+import Picker from 'emoji-picker-react';
 import iconCcip from '../assets/icon.png'
-import { IoSend } from "react-icons/io5";
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-export default function Live() {  
+import { IoSend, IoHappy } from "react-icons/io5";
+import axios from "axios";
+import { v4 as uuidv4 } from "uuid";
+import { getAdminUser, getMessagesRoute, newChatUserRoute, sendMessageRoute } from "../utils/APIRoutes";
 
+window.global = window;
+export default function Live() {
   const [msg, setMsg] = useState("");
+  const [formComplete, setFormComplete] = useState("");
+  const [currentUser, setCurrentUser] = useState(undefined);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+
+  const handleEmojiPickerHideShow = () => {
+    setShowEmojiPicker(!showEmojiPicker)
+  }
+  const handleEmojiPickerHide = () => {
+    setShowEmojiPicker(false)
+  }
+  const handleEmojiClick = (event, emoji) => {
+    let message = msg;
+    message += emoji.emoji;
+    setMsg(message)
+  }
+
+  const [userChat, setUserChat] = useState({
+    name: "",
+    email: "",
+  })
+
+  const [adminUser, setAdminUser] = useState({})
+  const [messages, setMessages] = useState([]);
+
+  useEffect(async () => {
+    if (currentUser) {
+      const response = await axios.post(getMessagesRoute, {
+        from: currentUser._id,
+        to: adminUser._id,
+      });
+      setMessages(response.data);
+    }
+  }, [adminUser])
+
+  useEffect(() => {
+    const getAdmin = async () => {
+      const { data } = await axios.post(getAdminUser);
+      if (data.status === false) {
+        console.e.log(data.msg)
+      }
+      if (data.status === true) {
+        setAdminUser(data.user)
+        // console.log(data.user._id)
+      }
+    }
+    getAdmin()
+  },[])
+  
+  useEffect(() => {
+    const consultUserchatLocalStorage = async () => {
+      if (!localStorage.getItem('chatUser')) {
+        return false
+      } else {
+        setCurrentUser(await JSON.parse(localStorage.getItem('chatUser')));
+        return true
+      }
+    }
+    consultUserchatLocalStorage();
+  }, []);
+
+  const handleChange = (event) => {
+    setUserChat({ ...userChat, [event.target.name]: event.target.value })
+  }
   
   const textInput = useRef(null);
 
-  const toastOptions = {
-    position: "bottom-right",
-    autoClose: 2000,
-    hideProgressBar: true,
-    closeOnClick: true,
-    pauseOnHover: true,
-    draggable: true,
-    progress: undefined,
+  const handleValidation = () => {
+    const inputname = document.getElementById('name');
+    const inputemail = document.getElementById('email');
+    const inputs = [  inputname, inputemail ];
+    const {name,email} = userChat;
+    if (name==='' || email==='' ) {
+      inputs.forEach((input) => {
+        if (input.value==='') {
+          input.style.border = "1px solid red";
+        }else{
+          input.style.border = "1px solid #aaa";
+        }
+      });
+      setFormComplete('Completa los campos')
+      return false;
+    }else{
+      setFormComplete('')
+      inputs.forEach((input) => {
+        input.style.border = "1px solid #aaa";
+      });
+      return true;
+    }
   }
 
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (handleValidation() && !currentUser){
+      const { email, name } = userChat;
+      const { data } = await axios.post(newChatUserRoute, {
+        email,
+        name,
+      });
+      if (data.status === false) {
+        setFormComplete('No se pudo guardar')
+      }
+      if (data.status === true) {
+        localStorage.setItem('chatUser', JSON.stringify(data.user))        
+        setCurrentUser(await JSON.parse(localStorage.getItem('chatUser')));
+      }
+    }
+  }
+  //presiona boton enviar/
   const sendChat = (event) => {
     event.preventDefault();
-    if (msg==='') {
+    if (msg.length > 0) {
+      handleSendMsg(msg);
+      setMsg("");
+    }else{
       textInput.current.focus();
     }
+  };
+  const handleSendMsg = async (msg) => {
+    await axios.post(sendMessageRoute, {
+      from: currentUser._id,
+      to: adminUser._id,
+      message: msg,
+    });
   };
 
   return (
@@ -39,24 +147,68 @@ export default function Live() {
         </div>
         <div className="chatBody">
           <div className="msgs">
-            <h4>Mensajes</h4>
+          {
+            currentUser ? (
+              <div className="chat-messages">
+                {messages.map((message) => {
+                  return (
+                    <div key={uuidv4()}>
+                      <div
+                        className={`message ${
+                          message.fromSelf ? "sended" : "recieved"
+                        }`}
+                      >
+                        <div className="content ">
+                          <p>{message.message}
+                          <small>{message.datetime}</small>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="registerChat">
+                <form onSubmit={(event) => handleSubmit(event)}>                
+                  <h4>Por favor, necesitamos estos datos</h4>
+                  <input type="text" placeholder="Nombre" name="name" id="name" onChange={(e)=>handleChange(e)}/>
+                  <input type="email" placeholder="Email" name="email" id="email" onChange={(e)=>handleChange(e)}/>
+                  <p style={{fontsize: '10px', color:'red'}}>{formComplete}</p>
+                  <button type="submit">Iniciar</button>
+                </form>
+              </div>
+            )
+          }
           </div>
         </div>
         <div className="chatFooter">
-          <form className="input-container"  onSubmit={(event) => sendChat(event)}>
-            <input
-              type="text"
-              placeholder="Escribe un mensaje aqui"
-              onChange={(e) => setMsg(e.target.value)}
-              value={msg}
-              ref={textInput}
-            />
-            <button type="submit"><IoSend/></button>
-          </form>
+          {
+            currentUser ? (
+              <>
+              <div className="emoji">
+                <button onClick={handleEmojiPickerHideShow}><IoHappy/></button>
+                {showEmojiPicker && <Picker onEmojiClick={handleEmojiClick}/>}
+              </div>
+              <form className="input-container" onSubmit={(event) => sendChat(event)}>
+                <input
+                  type="text"
+                  placeholder={'Escribe un mensaje '+currentUser.name}
+                  onChange={(e) => setMsg(e.target.value)}
+                  value={msg}
+                  ref={textInput}
+                  onClick={handleEmojiPickerHide}
+                />
+                <button type="submit"><IoSend/></button>
+              </form>
+              </>
+            ) : (
+              <center style={{textAlign: 'center', width: '100%'}}>Completa los datos para iniciar el chat</center>
+            )
+          }
         </div>
       </div>
     </div>
-    <ToastContainer/>
     </>
   )
 }

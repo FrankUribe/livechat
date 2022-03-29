@@ -6,9 +6,9 @@
   height: 100vh;
 }
 .chatBox{
-  max-width: 600px;
+  max-width: 500px;
   width: 100%;
-  max-height: 80vh;
+  max-height: 90vh;
   height: 100%;
   border-radius: 25px;
   box-shadow: 0px 5px 15px 5px #00000010;
@@ -24,7 +24,7 @@
   align-items: center;
 }
 .chatBody{
-  height: calc(100% - 100px);
+  height: calc(100% - 60px);
 }
 .chatHeader{
   border-radius: 15px 15px 0px 0px;
@@ -44,12 +44,33 @@
 .chatFooter{
   border-radius: 0px 0px 15px 15px;
 }
-.chatFooter form{
+.emoji{
+  position: relative;
+  width: 50px;
+}
+.emoji button{
+  display: flex;
+  justify-content: center;
+  align-items: center;
   width: 100%;
+  background-color: transparent;
+  border: none;
+  font-size: 30px;
+  color: #fff;
+  cursor: pointer;
+}
+.emoji .emoji-picker-react{
+  position: absolute;
+  top: -350px;
+  z-index: 9;
+  margin-left: 10px;
+}
+.chatFooter form{
+  width: calc(100% - 50px);
   border-radius: 2rem;
   display: flex;
   align-items: center;
-  padding: 10px;
+  padding: 10px 10px 10px 0px;
   gap: 5px;
 }
 .chatFooter form input {
@@ -78,9 +99,46 @@
   border: none;
   font-size: 2rem;
   width: 10%;
+  cursor: pointer;
 }
 .msgs{
   padding: 20px;
+  height: calc(100% - 40px);
+}
+.chatBody .registerChat {
+  height: 100%;
+  display: flex;
+  justify-content: center;
+}
+.chatBody .registerChat h4{
+  font-weight: 400;
+  margin-bottom: 5px;
+  text-align: center;
+}
+.chatBody .registerChat form{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  width: 100%;
+}
+.chatBody .registerChat form input{
+  border-radius: 12px;
+  font-size: 16px;
+  padding: 5px 10px;
+  outline: none;
+  border: solid #aaa 1px;
+}
+.chatBody .registerChat form button{
+  border-radius: 12px;
+  font-size: 16px;
+  padding: 5px 10px;
+  outline: none;
+  border: solid #007dff 1px;
+  background-color: #007dff;
+  color: #ffffff;
+  font-weight: 600;
 }
 /* menor a 600 */
 @media only screen and (max-width: 600px) {
@@ -108,4 +166,46 @@
   .chatFooter form button {
     width: 13%;
   }
+}
+.chat-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  overflow: auto;
+}
+.chat-messages .message {
+  display: flex;
+  align-items: center;
+}
+.chat-messages .message .content {
+  max-width: 72%;
+  overflow-wrap: break-word;
+  padding: 7px 15px;
+  border-radius: 1rem;
+}
+.chat-messages .message.sended {
+  justify-content: flex-end;
+}
+.chat-messages .message.sended .content {
+  background-color: #007dff;
+  color: #fff;
+  text-align: right;
+}
+.chat-messages .message.sended .content small{
+  font-size: 10px;
+  color: #eee;
+  margin-left: 3px;
+}
+.chat-messages .message.recieved {
+  justify-content: flex-start;
+}  
+.chat-messages .message.recieved .content {
+  background-color: #eee;
+  color: #444;
+  text-align: left;
+}
+.chat-messages .message.recieved .content small{
+  font-size: 10px;
+  color: #888;
+  margin-left: 3px;
 }
