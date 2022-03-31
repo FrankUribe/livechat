@@ -5,14 +5,25 @@ import iconCcip from '../assets/icon.png'
 import { IoSend, IoHappy } from "react-icons/io5";
 import axios from "axios";
 import { v4 as uuidv4 } from "uuid";
-import { getAdminUser, getMessagesRoute, newChatUserRoute, sendMessageRoute } from "../utils/APIRoutes";
+import { io } from "socket.io-client";
+import { getAdminUser, getMessagesRoute, newChatUserRoute, sendMessageRoute, host } from "../utils/APIRoutes";
 
 window.global = window;
 export default function Live() {
+  const textInput = useRef(null);
   const [msg, setMsg] = useState("");
   const [formComplete, setFormComplete] = useState("");
   const [currentUser, setCurrentUser] = useState(undefined);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [arrivalMessage, setArrivalMessage] = useState(null);
+  const [adminUser, setAdminUser] = useState({})
+  const [messages, setMessages] = useState([]);
+  const [userChat, setUserChat] = useState({
+    name: "",
+    email: "",
+  })
+  const scrollRef = useRef();
+  const socket = useRef();
 
   const handleEmojiPickerHideShow = () => {
     setShowEmojiPicker(!showEmojiPicker)
@@ -25,15 +36,6 @@ export default function Live() {
     message += emoji.emoji;
     setMsg(message)
   }
-
-  const [userChat, setUserChat] = useState({
-    name: "",
-    email: "",
-  })
-
-  const [adminUser, setAdminUser] = useState({})
-  const [messages, setMessages] = useState([]);
-
   useEffect(async () => {
     if (currentUser) {
       const response = await axios.post(getMessagesRoute, {
@@ -73,8 +75,6 @@ export default function Live() {
   const handleChange = (event) => {
     setUserChat({ ...userChat, [event.target.name]: event.target.value })
   }
-  
-  const textInput = useRef(null);
 
   const handleValidation = () => {
     const inputname = document.getElementById('name');
@@ -112,8 +112,12 @@ export default function Live() {
         setFormComplete('No se pudo guardar')
       }
       if (data.status === true) {
-        localStorage.setItem('chatUser', JSON.stringify(data.user))        
+        localStorage.setItem('chatUser', JSON.stringify(data.user))
         setCurrentUser(await JSON.parse(localStorage.getItem('chatUser')));
+        setTimeout(
+          function(){
+            sendIniciarMsg(data.user)
+          }, 2000);
       }
     }
   }
@@ -127,13 +131,91 @@ export default function Live() {
       textInput.current.focus();
     }
   };
+
   const handleSendMsg = async (msg) => {
     await axios.post(sendMessageRoute, {
       from: currentUser._id,
       to: adminUser._id,
       message: msg,
     });
+    socket.current.emit("send-msg", {
+      to: adminUser._id,
+      from: currentUser._id,
+      message: msg,
+    })
+    const msgs = [...messages]
+    const d = new Date();
+    const time = d.getHours() + ":" + d.getMinutes();
+    msgs.push({
+      fromSelf: true,
+      message: msg,
+      datetime: time,
+    })
+    setMessages(msgs)
   };
+
+  const sendIniciarMsg = async (user) => {
+    await axios.post(sendMessageRoute, {
+      from: user._id,
+      to: adminUser._id,
+      message: "Iniciar",
+    });
+    const msgs = [...messages]
+    const d = new Date();
+    const time = d.getHours() + ":" + d.getMinutes();
+    msgs.push({
+      fromSelf: true,
+      message: "Iniciar",
+      datetime: time,
+    })
+    
+    setMessages(msgs)
+
+    setTimeout(
+      function(){
+        sendWellcomeMsg(user)
+      }
+    ,1000);
+  };
+
+  const sendWellcomeMsg = async (user) => {
+    await axios.post(sendMessageRoute, {
+      from: adminUser._id,
+      to: user._id,
+      message: "Hola "+user.name+" un asistente se unirá al chat en breve 😃",
+    });
+    const msgs = [...messages]
+    const d = new Date();
+    const time = d.getHours() + ":" + d.getMinutes();
+    msgs.push({
+      fromSelf: false,
+      message: "Hola "+user.name+" un asistente se unirá al chat en breve 😃",
+      datetime: time,
+    })
+    setMessages(msgs)
+  };
+
+  
+  useEffect(() => {
+    if (currentUser) {
+      socket.current = io(host);
+      socket.current.emit("add-user", currentUser._id);
+
+      const d = new Date();
+      const time = d.getHours() + ":" + d.getMinutes();
+      socket.current.on("msg-recieve", (msg) => {
+        setArrivalMessage({fromSelf:false, message: msg, datetime: time})
+      })
+    }
+  }, [currentUser]);
+
+  useEffect(() => {
+    arrivalMessage && setMessages((prev)=>[...prev, arrivalMessage])
+  }, [arrivalMessage])
+
+  useEffect(() => {
+    scrollRef.current?.scrollIntoView({behaviur: "smooth"})
+  }, [messages])
 
   return (
     <>
@@ -152,7 +234,7 @@ export default function Live() {
               <div className="chat-messages">
                 {messages.map((message) => {
                   return (
-                    <div key={uuidv4()}>
+                    <div ref={scrollRef} key={uuidv4()}>
                       <div
                         className={`message ${
                           message.fromSelf ? "sended" : "recieved"

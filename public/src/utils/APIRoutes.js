@@ -5,3 +5,4 @@ export const allUsersRoute = `${host}/api/auth/allusers`;
 export const getAdminUser = `${host}/api/auth/adminuser`;
 export const sendMessageRoute = `${host}/api/messages/addmsg`;
 export const getMessagesRoute = `${host}/api/messages/getmsg`;
+export const getLastMessagesRoute = `${host}/api/messages/getlastmsg`;

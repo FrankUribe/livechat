@@ -51,7 +51,7 @@ body{
   backdrop-filter: blur(10px);
   border-radius: 25px;
   display: grid;
-  grid-template-columns: 80px 300px calc(100% - 380px);
+  grid-template-columns: 80px 350px calc(100% - 430px);
 }
 .panel{
   background-color: #fff;
@@ -111,7 +111,6 @@ body{
   background-color: #ffffff80;
 }
 .chat{
-  padding: 15px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -150,7 +149,7 @@ body{
   transition: 0.3s ease-in-out;
   display: grid;
   padding: 10px;
-  grid-template-columns: 45px calc(100% - 45px);
+  grid-template-columns: 45px calc(100% - 105px) 60px;
   border-style: solid;
   border-width: 0px 0px 1px 0px;
   border-color: #eee;
@@ -184,14 +183,77 @@ body{
   height: 45px;
   padding-left: 5px;
 }
+.contacts .contact .username b{
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;  
+}
 .contacts .contact .username span{
   font-size: 13px;
   color: #666;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;  
+}
+.contacts .contact .chattime{
+  font-size: 10px;
+  text-align: right;
+  line-height: 45px;
+}
+.contacts .contact.selected .chattime{
+  color: #ffff;
 }
 /* End Contacts Css */
+
+.modalContactDetails{
+  display: none;
+}
+.chat_contact{
+  width: 100%;
+  display: grid;
+  grid-template-columns: 70% 30%;
+  max-height: 90vh;
+  height: 100%;
+}
+.chat_contact .contactDetails{
+  background-color: #ffffff80;
+  border-radius: 0px 25px 25px 0px;
+  display: flex;
+  gap: 10px;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.chat_contact .contactDetails .avatar{
+  width: 60px;
+  height: 60px;
+  line-height: 57px;
+  border-radius: 60px;
+  background-color: #007dff;
+  text-align: center;
+  font-size: 24px;
+  color: #fff;
+}
+@media only screen and (max-width:1600px) {
+  .chat_contact{
+    grid-template-columns: 60% 40%;
+  }
+}
+@media only screen and (max-width:1200px) {
+  .chat_contact{
+    grid-template-columns: 100%;
+  }
+  .chat_contact .contactDetails{
+    display: none;
+  }
+  .modalContactDetails{
+    display: initial;
+  }
+}
 /* Chat Container CSS */
 .chatContainerAdmin{
   width: 100%;
+  max-height: 90vh;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -202,6 +264,7 @@ body{
   grid-template-columns: 40px calc(100% - 100px) 40px;
   height: 40px;
   gap: 10px;
+  padding: 10px 10px;
 }
 .adminContainer .chat-header .avatar{
   width: 40px;
@@ -227,6 +290,7 @@ body{
   display: flex;
   align-items: center;
   gap: 8px;
+  padding: 10px;
 }
 .chatContainerAdmin .chat-input .emoji:first-child{
   display: flex;
@@ -263,4 +327,107 @@ body{
   align-items: center;
   justify-content: center;
   cursor: pointer;
+}
+
+/* chat admin */
+.chatContainerAdmin .chat-messages.admin {
+  max-height: calc(100% - 60px);
+  overflow: auto;
+  display: flex;
+  padding: 0px 10px;
+}
+.chatContainerAdmin .chat-messages.admin::-webkit-scrollbar {
+  width: 0.2rem;
+}
+.chatContainerAdmin .chat-messages.admin::-webkit-scrollbar-thumb {
+  background-color: #007dff;
+  width: 0.1rem;
+  border-radius: 1rem;
+}
+.chat-messages.admin .chat-admin{
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.chat-messages.admin .chat-admin .message .content {
+  box-shadow: 2px 5px 5px 0px #00000008;
+}
+.chat-messages.admin .chat-admin .message.recieved .content {
+  background-color: #ffffff;
+}
+
+@media only screen and (max-width:1000px){
+  .adminBox{
+    grid-template-columns: 60px 250px calc(100% - 310px);
+  }
+}
+@media only screen and (max-width:700px){
+  .adminBox{
+    display: flex !important;
+    flex-direction: column !important;
+    border-radius: 15px !important;
+    height: 95vh !important;
+  }
+  .panel{
+    display: flex !important;
+    flex-direction: row !important;
+    padding: 2px  10px!important;
+    border-radius: 15px 15px 0px 0px !important;
+    height: 60px;
+  }
+  .panel .headerPanel{
+    width: 100%;
+  }
+  .panel ul{
+    display: inline-block !important;
+  }  
+  .panel ul li {
+    float: left;
+  }
+  .panel img{
+    width: 60px !important;
+  }
+  .contacts{
+    display: flex;
+    flex-direction: row;
+    overflow: auto;
+  }
+  .contacts::-webkit-scrollbar {
+    height: 8px;
+  }
+  .contacts::-webkit-scrollbar-thumb {
+    background-color: #007dff50;
+  }
+  .options{
+    height: 90px;
+  }
+  .contact{
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center;
+    flex-direction: column;
+    height: 60px;
+    min-width: 70px;
+  }
+  .contact .profilepic{
+    height: 50px !important;
+    width: 25px !important;
+  }
+  .contact .username{
+    padding: 0 !important;
+  }
+  .contact .username span{
+    display: none;
+  }
+  .contact .chattime{
+    line-height: 12px !important;
+  }
+  .adminBox .chat .chat_contact .chatContainerAdmin{
+    min-height: calc(95vh - 150px);
+    max-height: calc(95vh - 150px);
+  }
+  .emoji .emoji-picker-react{
+    left: 0;
+    box-shadow: none;
+  }
 }

@@ -2,16 +2,18 @@ import iconCcip from '../assets/icon.png'
 import '../assets/admin.css'
 import '../assets/modal.css'
 import axios from "axios";
+import { io } from "socket.io-client";
 import { IoChatbubbles, IoSettingsSharp, IoLogOut } from "react-icons/io5";
 import { useNavigate } from "react-router-dom"
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Modal, { ModalHeader, ModalBody, ModalFooter } from '../components/modal';
 import Contacts from '../components/Contacts';
 import ChatContainer from '../components/ChatContainer';
-import { allUsersRoute } from "../utils/APIRoutes";
+import { allUsersRoute, host } from "../utils/APIRoutes";
 
 export default function Admin() {
   const navigate = useNavigate();
+  const socket = useRef();
   const [currentUser, setCurrentUser] = useState(undefined);
   const [isLog, setIsLog] = useState(false)
   const [modal, setModal] = useState(false)
@@ -52,6 +54,13 @@ export default function Admin() {
 
   
   useEffect(() => {
+    if (currentUser) {
+      socket.current = io(host);
+      socket.current.emit("add-user", currentUser._id);
+    }
+  }, [currentUser]);
+  
+  useEffect(() => {
     const fetchData = async () => {
       if (currentUser) {
         const data = await axios.get(`${allUsersRoute}/${currentUser._id}`);
@@ -74,7 +83,7 @@ export default function Admin() {
             <div className="headerPanel">
               <ul>
                 <li><img src={iconCcip} alt="Logo CCIP" /></li>
-                <li className='panel-icon'><IoChatbubbles/></li>
+                {/* <li className='panel-icon'><IoChatbubbles/></li> */}
                 {/* <li className='panel-icon'><IoSettingsSharp/></li> */}
               </ul>
             </div>
@@ -83,13 +92,13 @@ export default function Admin() {
             </div>
           </div>
           <div className="options">
-            <Contacts contacts={contacts} changeChat={handleChatChange} />
+            <Contacts contacts={contacts} changeChat={handleChatChange}/>
           </div>
           <div className="chat">
             {currentChat === undefined ? (
               <p>Presiona un contacto para chatear</p>
             ) : (
-              <ChatContainer currentChat={currentChat} currentUser={currentUser}/>
+              <ChatContainer currentChat={currentChat} currentUser={currentUser} socket={socket}/>
             )}
           </div>
         </div>

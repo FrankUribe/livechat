@@ -42,7 +42,7 @@ module.exports.getAllUsers = async (req, res, next) => {
             "email",
             "name",
             "_id",
-        ]);
+        ]).sort({ _id: -1});
         return res.json(users);
     } catch (error) {
         next(error)

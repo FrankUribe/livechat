@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
+import axios from "axios";
+import { getLastMessagesRoute } from "../utils/APIRoutes";
 export default function Contacts({ contacts, changeChat }) {
   const [currentUserName, setCurrentUserName] = useState(undefined);
+  const [currentUser, setCurrentUser] = useState(undefined);
   const [currentSelected, setCurrentSelected] = useState(undefined);
 
   useEffect(() => {
@@ -8,6 +11,7 @@ export default function Contacts({ contacts, changeChat }) {
       if (localStorage.getItem('authUser')) {
         const data = await JSON.parse(localStorage.getItem("authUser"));
         setCurrentUserName(data.name);
+        setCurrentUser(data)
       }
     }
     fetchData();
@@ -17,9 +21,23 @@ export default function Contacts({ contacts, changeChat }) {
     setCurrentSelected(index);
     changeChat(contact);
   };
+  const getlastmsgByUser = async (user) => {
+    const lastm = await axios.post(getLastMessagesRoute, {
+      from: user,
+      to: currentUser._id,
+    });
+    const lastmsgByUser = lastm.data[0].message.text;
+    const datetimeContactChat = lastm.data[0].updatedAt;
+    
+    const d = new Date(datetimeContactChat);
+    const time = d.getHours() + ":" + d.getMinutes() +' '+ d.getDate() + "/" + d.getMonth();
+    document.getElementById('msg'+user+'').innerHTML = lastmsgByUser
+    document.getElementById('dtc'+user+'').innerHTML = time
+  }
   return (
     <div className="contacts">
       {contacts.map((contact, index) => {
+        getlastmsgByUser(contact._id)
         return (
           <div
             key={contact._id}
@@ -33,7 +51,10 @@ export default function Contacts({ contacts, changeChat }) {
             </div>
             <div className="username">
               <b>{contact.name}</b>
-              <span>...ultimo mensaje</span>
+              <span id={`msg${contact._id}`}>...ultimo mensaje</span>
+            </div>
+            <div className="chattime">
+              <span id={`dtc${contact._id}`}>12:00</span>
             </div>
           </div>
         );

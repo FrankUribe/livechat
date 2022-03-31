@@ -27,16 +27,36 @@ module.exports.getMessages = async (req, res, next) => {
         }).sort({ updatedAt: 1 });
 
         const projectedMessages = messages.map((msg) => {
-            
             const d = new Date(msg.updatedAt);
-            datemsg = d.getHours() + ":" + d.getMinutes();
+            const now = new Date();
+            var time = d.getHours() + ":" + d.getMinutes();
+            var date = d.getDate() + "/" + d.getMonth();
+            var datenow = now.getDate() + "/" + now.getMonth();
+            if (datenow !== date) {
+                time = time + ' ' + date;
+            }
             return {
                 fromSelf: msg.sender.toString() === from,
                 message: msg.message.text,
-                datetime: datemsg,
+                datetime: time,
             };
         });
         res.json(projectedMessages);
+    } catch (ex) {
+        next(ex);
+    }
+};
+module.exports.getLastMessage = async (req, res, next) => {
+    try {
+        const { from, to } = req.body;
+
+        const message = await Messages.find({
+            users: {
+                $all: [from, to],
+            },
+        }).sort({ _id: -1 }).limit(1);
+        
+        return res.json( message )
     } catch (ex) {
         next(ex);
     }
