@@ -6,9 +6,9 @@ import { IoSend, IoHappy } from "react-icons/io5";
 import axios from "axios";
 import { v4 as uuidv4 } from "uuid";
 import { io } from "socket.io-client";
-import { getAdminUser, getMessagesRoute, newChatUserRoute, sendMessageRoute, host } from "../utils/APIRoutes";
+import { getAdminUser, getMessagesRoute, newChatUserRoute, sendMessageRoute, updateIsActiveRoute, host } from "../utils/APIRoutes";
 
-window.global = window;
+// window.global = window;
 export default function Live() {
   const textInput = useRef(null);
   const [msg, setMsg] = useState("");
@@ -24,6 +24,44 @@ export default function Live() {
   })
   const scrollRef = useRef();
   const socket = useRef();
+
+  //si existe un chat user en el local
+  useEffect(() => {
+    if (!localStorage.getItem('chatUser')) {
+      return false
+    } else {
+      setCurrentUser(JSON.parse(localStorage.getItem('chatUser')));
+      const pk = JSON.parse(localStorage.getItem('chatUser'))._id
+      axios.post(updateIsActiveRoute, {
+        id: pk,
+        status: true,
+      })
+      socket.current = io(host);
+      socket.current.emit("setActiveUser")
+      return true
+    }
+  }, []);
+
+  const handleisActive = async () => {
+    await axios.post(updateIsActiveRoute, {
+      id: currentUser._id,
+      status: true,
+    })
+  };
+  const handleisNotActive = async () => {
+    await axios.post(updateIsActiveRoute, {
+      id: currentUser._id,
+      status: false,
+    })
+  };
+
+  window.onbeforeunload = function (e) {
+    if (currentUser) {
+      socket.current = io(host);
+      socket.current.emit("setActiveUser")
+      handleisNotActive()
+    }
+  };
 
   const handleEmojiPickerHideShow = () => {
     setShowEmojiPicker(!showEmojiPicker)
@@ -50,27 +88,16 @@ export default function Live() {
     const getAdmin = async () => {
       const { data } = await axios.post(getAdminUser);
       if (data.status === false) {
-        console.e.log(data.msg)
       }
       if (data.status === true) {
         setAdminUser(data.user)
-        // console.log(data.user._id)
       }
     }
     getAdmin()
   },[])
   
-  useEffect(() => {
-    const consultUserchatLocalStorage = async () => {
-      if (!localStorage.getItem('chatUser')) {
-        return false
-      } else {
-        setCurrentUser(await JSON.parse(localStorage.getItem('chatUser')));
-        return true
-      }
-    }
-    consultUserchatLocalStorage();
-  }, []);
+  
+  
 
   const handleChange = (event) => {
     setUserChat({ ...userChat, [event.target.name]: event.target.value })

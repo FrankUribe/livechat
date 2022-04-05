@@ -50,4 +50,8 @@ io.on("connection", (socket) => {
       socket.to(sendUserSocket).emit("msg-recieve", data.message);
     }
   });
+
+  socket.on("setActiveUser", () => {
+    io.emit("activeUser");
+  });
 });

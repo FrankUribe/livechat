@@ -126,6 +126,21 @@ body{
   cursor: pointer;
   transition: 0.2s ease-in-out;
 }
+.btn-sm{
+  border: none; 
+  padding: 2px 5px 0px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.inputr{
+  font-family: 'Inter', sans-serif;
+  outline: none;
+  font-size: 16px;
+  border-radius: 10px;
+  width: 80%;
+  padding: 3px 8px;
+  border: solid 1px #ccc;
+}
 .btn:hover{
   transform: scale(1.03);
   box-shadow: 3px 3px 5px 0px #00000020;
@@ -410,8 +425,8 @@ body{
     min-width: 70px;
   }
   .contact .profilepic{
-    height: 50px !important;
-    width: 25px !important;
+    height: 40px !important;
+    width: 40px !important;
   }
   .contact .username{
     padding: 0 !important;

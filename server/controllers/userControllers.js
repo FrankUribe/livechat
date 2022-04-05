@@ -16,6 +16,7 @@ module.exports.login = async (req, res, next) => {
             return res.json({ msg: "Acceso denegado", status: false });
 
         delete user.password;
+        delete user.isActive;
         return res.json({ status: true, user})
     } catch (error) {
         next(error)
@@ -42,6 +43,10 @@ module.exports.getAllUsers = async (req, res, next) => {
             "email",
             "name",
             "_id",
+            "isActive",
+            "phone",
+            "country",
+            "city",
         ]).sort({ _id: -1});
         return res.json(users);
     } catch (error) {
@@ -56,6 +61,15 @@ module.exports.getAdminUser = async (req, res, next) => {
             return res.json({ msg: "no se encontro", status: false });
         delete user.password;
         return res.json({ status: true, user})
+    } catch (error) {
+        next(error)
+    }
+};
+
+module.exports.updateIsActive = async (req, res, next) => {
+    try {
+        const {id, status} = req.body;
+        await User.updateOne({ _id: id }, { isActive: status })
     } catch (error) {
         next(error)
     }

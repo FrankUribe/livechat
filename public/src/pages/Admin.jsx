@@ -20,12 +20,61 @@ export default function Admin() {
   const [currentChat, setCurrentChat] = useState(undefined);
   const [contacts, setContacts] = useState([]);
 
+  //consultamos si existe el usuario admin con la variable authUser
+  useEffect(() => {
+    const consultUserLocalStorage = async () => {
+      if (!localStorage.getItem('authUser')) {
+        //si no volvemos al login y la variable log = false
+        navigate("/login");
+        setIsLog(true)
+      } else {
+        //si existe la variable login son los datos del admin y la variable log = true
+        setCurrentUser(await JSON.parse(localStorage.getItem('authUser')));
+        setIsLog(true)
+      }
+    }
+    consultUserLocalStorage();
+  }, []);
+  
+  //traer contactos
+  const fetchContacts = async () => {
+    if (currentUser) {
+      const data = await axios.get(`${allUsersRoute}/${currentUser._id}`);
+      setContacts(data.data);
+    }
+  }
+
+  //hook para traer los contactos chat al cargar
+  useEffect(() => {
+    fetchContacts();
+  }, [currentUser]);
+
+  //hook para setear un usuario con socket, y traer los usarios cada vez que lleguen mensajes
+  useEffect(() => {
+    if (currentUser) {
+      socket.current = io(host);
+      socket.current.emit("add-user", currentUser._id);
+
+      socket.current.on("msg-recieve", () => {
+        fetchContacts()
+      })
+
+      socket.current.on("activeUser", () => {
+        fetchContacts()
+      })
+    }
+  }, [currentUser]);
+
+
+  //cerrar sesion
   const logout = async () => {
+    //borramos la variable del local
     localStorage.removeItem('authUser');
     navigate("/login");
     setModal(false)
   };
 
+  //hook cada vez que se de un click se cierre el modal, solo si el modal esta abierto
   useEffect(() => {
     const clickOutsideContent = (e) => {
         if (e.target.className === 'modal active') {
@@ -36,40 +85,9 @@ export default function Admin() {
     return () => {
         window.removeEventListener('click', clickOutsideContent);
     };
-  }, [])
-  
+  }, []) 
 
-  useEffect(() => {
-    const consultUserLocalStorage = async () => {
-      if (!localStorage.getItem('authUser')) {
-        navigate("/login");
-        setIsLog(true)
-      } else {
-        setCurrentUser(await JSON.parse(localStorage.getItem('authUser')));
-        setIsLog(true)
-      }
-    }
-    consultUserLocalStorage();
-  }, []);
-
-  
-  useEffect(() => {
-    if (currentUser) {
-      socket.current = io(host);
-      socket.current.emit("add-user", currentUser._id);
-    }
-  }, [currentUser]);
-  
-  useEffect(() => {
-    const fetchData = async () => {
-      if (currentUser) {
-        const data = await axios.get(`${allUsersRoute}/${currentUser._id}`);
-        setContacts(data.data);
-      }
-    }
-    fetchData();
-  }, [currentUser]);
-
+  //funcion cambio de chat
   const handleChatChange = (chat) => {
     setCurrentChat(chat);
   };
@@ -98,7 +116,7 @@ export default function Admin() {
             {currentChat === undefined ? (
               <p>Presiona un contacto para chatear</p>
             ) : (
-              <ChatContainer currentChat={currentChat} currentUser={currentUser} socket={socket}/>
+              <ChatContainer currentChat={currentChat} currentUser={currentUser} socket={socket} fetchContacts={fetchContacts()}/>
             )}
           </div>
         </div>

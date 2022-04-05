@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from "react";
-import { IoSend, IoHappy, IoEllipsisVertical } from "react-icons/io5";
+import { IoSend, IoHappy, IoEllipsisVertical, IoPencil } from "react-icons/io5";
 import axios from "axios";
 import { v4 as uuidv4 } from "uuid";
 import Picker from 'emoji-picker-react';
 import { getMessagesRoute, sendMessageRoute, getLastMessagesRoute } from "../utils/APIRoutes";
 import Modal, { ModalHeader, ModalBody, ModalFooter } from '../components/modal';
 
-export default function ChatContainer({ currentChat, currentUser, socket }) {
+export default function ChatContainer({ currentChat, currentUser, socket, fetchContacts }) {
   const [msg, setMsg] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [messages, setMessages] = useState([]);
@@ -14,7 +14,20 @@ export default function ChatContainer({ currentChat, currentUser, socket }) {
   const textInput = useRef(null);
   const [arrivalMessage, setArrivalMessage] = useState(null);
   const [modal, setModal] = useState(false)
+  const [chatData, setChatData] = useState(currentChat)
 
+  //hook traer los mesajes del usuario actual (si existe) hacia un usuario de chat
+  useEffect(async () => {
+    if (currentUser) {
+      const response = await axios.post(getMessagesRoute, {
+        from: currentUser._id,
+        to: currentChat._id,
+      });
+      setMessages(response.data);
+    }
+  }, [currentChat])
+  
+  //hook cada vez que se de un click se cierre el modal, solo si el modal esta abierto
   useEffect(() => {
     const clickOutsideContent = (e) => {
         if (e.target.className === 'modal active') {
@@ -27,28 +40,22 @@ export default function ChatContainer({ currentChat, currentUser, socket }) {
     };
   }, [])
 
+  //funcion al presionar boton de emoji, abre modal
   const handleEmojiPickerHideShow = () => {
     setShowEmojiPicker(!showEmojiPicker)
   }
+  //funcion al presionar caja de texto, cierra modal emoji
   const handleEmojiPickerHide = () => {
     setShowEmojiPicker(false)
   }
+  //funcion seleccionar emoji, lo setea al mensaje
   const handleEmojiClick = (event, emoji) => {
     let message = msg;
     message += emoji.emoji;
     setMsg(message)
-  }  
-  useEffect(async () => {
-    if (currentUser) {
-      const response = await axios.post(getMessagesRoute, {
-        from: currentUser._id,
-        to: currentChat._id,
-      });
-      setMessages(response.data);
-    }
-  }, [currentChat])
-  
-  //presiona boton enviar/
+  }
+
+  //presiona boton enviar -> funcion enviar mensaje
   const sendChat = (event) => {
     event.preventDefault();
     if (msg.length > 0) {
@@ -58,17 +65,21 @@ export default function ChatContainer({ currentChat, currentUser, socket }) {
       textInput.current.focus();
     }
   };
+  //funcion enviar mensaje asincrona
   const handleSendMsg = async (msg) => {
+    //backend axios envia mensaje
     await axios.post(sendMessageRoute, {
       from: currentUser._id,
       to: currentChat._id,
       message: msg,
     });
+    //socket emite send-msg
     socket.current.emit("send-msg", {
       to: currentChat._id,
       from: currentUser._id,
       message: msg,
     })
+    //añadimos el mensaje nuevo a la variable array messages
     const msgs = [...messages]
     const d = new Date();
     const time = d.getHours() + ":" + d.getMinutes();
@@ -78,9 +89,12 @@ export default function ChatContainer({ currentChat, currentUser, socket }) {
       datetime: time,
     })
     setMessages(msgs)
+
+    //traemos los contactos
+    fetchContacts
   };
 
-
+  //funcion traer el ultimo mensaje del chat
   const getlastmsgByUser = async () => {
     if (currentChat) {
       const lastm = await axios.post(getLastMessagesRoute, {
@@ -89,13 +103,25 @@ export default function ChatContainer({ currentChat, currentUser, socket }) {
       });
       const lastmsgByUser = lastm.data[0].message.text;
       const datetimeContactChat = lastm.data[0].updatedAt;
-      
+      //obtenemos los valores y los damos segun el id
       const d = new Date(datetimeContactChat);
-      const time = d.getHours() + ":" + d.getMinutes() +' '+ d.getDate() + "/" + d.getMonth();
+      const d_time = d.getHours() + ":" + d.getMinutes();
+      const d_date = d.getDate() + "/" + d.getMonth();
+
+      const now = new Date();
+      const now_date = now.getDate() + "/" + now.getMonth();
+
+      var datetimechat = d_time + ' ' + d_date;
+
+      if (d_date === now_date) {
+        datetimechat = d_time;
+      }
+
       document.getElementById('msg'+currentChat._id+'').innerHTML = lastmsgByUser
-      document.getElementById('dtc'+currentChat._id+'').innerHTML = time
+      document.getElementById('dtc'+currentChat._id+'').innerHTML = datetimechat
     }
   }
+  //hook para traer los mensajes con socket.io
   useEffect(() => {
     const d = new Date();
     const time = d.getHours() + ":" + d.getMinutes();
@@ -106,14 +132,21 @@ export default function ChatContainer({ currentChat, currentUser, socket }) {
     }
   }, [])
 
+  //hook que actualiza el ultimo mensaje enviado cada vez que se brinde un mensaje
   useEffect(() => {
     arrivalMessage && setMessages((prev)=>[...prev, arrivalMessage])
     getlastmsgByUser(currentChat._id)
   }, [arrivalMessage])
 
+  //hook para desplazarse al final de la ref scrollRef (chat)
   useEffect(() => {
     scrollRef.current?.scrollIntoView({behaviur: "smooth"})
   }, [messages])
+
+  
+  const handleChangeChatData = (event) => {
+    setChatData({ ...chatData, [event.target.name]: event.target.value })
+  }
   
   return (
     <div className="chat_contact">
@@ -191,10 +224,6 @@ export default function ChatContainer({ currentChat, currentUser, socket }) {
                 <td width='80px'>Ciudad</td>
                 <td>...</td>
               </tr>
-              <tr>
-                <td width='80px'>Ip</td>
-                <td>...</td>
-              </tr>
             </tbody>
           </table>
         </div>
@@ -204,30 +233,30 @@ export default function ChatContainer({ currentChat, currentUser, socket }) {
       <Modal show={modal}>
         <div className="modal-dialog" style={{width: '300px'}}>
           <ModalHeader>
-            <h4>{currentChat.name}</h4>
+            <h4>{currentChat.name} &nbsp; <button className="btn-sm"><IoPencil/></button></h4>
           </ModalHeader>
           <ModalBody>
-          <table>
+          <table width='100%'>
             <tbody>
               <tr>
+                <td width='80px'>Nombre</td>
+                <td><input className="inputr" name="name" value={chatData.name} onChange={(e)=>handleChangeChatData(e)}/></td>
+              </tr>
+              <tr>
                 <td width='80px'>Correo</td>
-                <td>{currentChat.email}</td>
+                <td><input className="inputr" name="email" value={chatData.email} onChange={(e)=>handleChangeChatData(e)}/></td>
               </tr>
               <tr>
                 <td width='80px'>Telefono</td>
-                <td>...</td>
+                <td><input className="inputr" name="phone" value={chatData.phone} onChange={(e)=>handleChangeChatData(e)}/></td>
               </tr>
               <tr>
                 <td width='80px'>Pais</td>
-                <td>...</td>
+                <td><input className="inputr" name="country" value={chatData.country} onChange={(e)=>handleChangeChatData(e)}/></td>
               </tr>
               <tr>
                 <td width='80px'>Ciudad</td>
-                <td>...</td>
-              </tr>
-              <tr>
-                <td width='80px'>Ip</td>
-                <td>...</td>
+                <td><input className="inputr" name="city" value={chatData.city} onChange={(e)=>handleChangeChatData(e)}/></td>
               </tr>
             </tbody>
           </table>

@@ -20,12 +20,22 @@ const userSchema = new mongoose.Schema({
     default: false,
     required: true,
   },
+  isActive: {
+    type: Boolean,
+    default: true,
+    required: true,
+  },
   phone: {
     type: String,
     default: "",
     required: false,
   },
-  tempid: {
+  country: {
+    type: String,
+    default: "",
+    required: false,
+  },
+  city: {
     type: String,
     default: "",
     required: false,
