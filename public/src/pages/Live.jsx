@@ -2,7 +2,7 @@ import '../assets/live.css'
 import { useState, useEffect, useRef } from "react";
 import Picker from 'emoji-picker-react';
 import iconCcip from '../assets/icon.png'
-import { IoSend, IoHappy } from "react-icons/io5";
+import { IoSend, IoHappy, IoAdd, IoCamera } from "react-icons/io5";
 import axios from "axios";
 import { v4 as uuidv4 } from "uuid";
 import { io } from "socket.io-client";
@@ -24,6 +24,12 @@ export default function Live() {
   })
   const scrollRef = useRef();
   const socket = useRef();
+  const addToMsg = useRef(null);
+  const imageToMsg = useRef(null)
+  const addToMsgButton = useRef(null);
+  const [baseImage, setBaseImage] = useState("");
+  const [stateAddToMsg, setStateAddToMsg] = useState(false);
+  const [stateImgToMsg, setStateImgToMsg] = useState(false);
 
   //si existe un chat user en el local
   useEffect(() => {
@@ -98,6 +104,19 @@ export default function Live() {
   
   
   
+  const handleAddToMsgHideShow = () => {
+    if (stateAddToMsg===true) {
+      addToMsg.current.style.display = 'none'
+      addToMsgButton.current.style.transform = 'rotate(0deg)'
+      addToMsgButton.current.style.transition = 'transform .2s ease-in-out'
+      handleEmojiPickerHide()
+    }else{
+      addToMsg.current.style.display = 'flex'
+      addToMsgButton.current.style.transform = 'rotate(45deg)'
+      addToMsgButton.current.style.transition = 'transform .2s ease-in-out'
+    }
+    setStateAddToMsg(!stateAddToMsg)
+  }
 
   const handleChange = (event) => {
     setUserChat({ ...userChat, [event.target.name]: event.target.value })
@@ -244,6 +263,44 @@ export default function Live() {
     scrollRef.current?.scrollIntoView({behaviur: "smooth"})
   }, [messages])
 
+
+  
+  const uploadImage = async (e) => {
+    const file = e.target.files[0];
+    const base64 = await convertBase64(file);
+    setBaseImage(base64);
+  };
+
+  const convertBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const fileReader = new FileReader();
+      fileReader.readAsDataURL(file);
+
+      fileReader.onload = () => {
+        resolve(fileReader.result);
+      };
+
+      fileReader.onerror = (error) => {
+        reject(error);
+      };
+    });
+  };
+
+  const handleImgHideShow = () => {
+    if (stateImgToMsg===true) {
+      imageToMsg.current.style.display = 'none'
+      setBaseImage("");
+    }else{
+      imageToMsg.current.style.display = 'flex'
+    }
+    setStateImgToMsg(!stateImgToMsg)
+  }
+  
+  const handleSendImgMsg = () => {
+    handleSendMsg(baseImage)
+    handleImgHideShow()
+    handleAddToMsgHideShow()
+  }
   return (
     <>
     <div className="chatContainer">
@@ -268,9 +325,24 @@ export default function Live() {
                         }`}
                       >
                         <div className="content ">
-                          <p>{message.message}
-                          <small>{message.datetime}</small>
-                          </p>
+                          {
+                            message.message.slice(0, 10) === 'data:image' ?
+                            <>
+                              <img src={message.message} 
+                              style={{
+                                width: '100%',
+                                borderRadius: '10px'
+                              }}
+                              />
+                              <small>{message.datetime}</small>
+                            </>
+                            :
+                            <>
+                              <p>{message.message}
+                              <small>{message.datetime}</small>
+                              </p>
+                            </>
+                          }
                         </div>
                       </div>
                     </div>
@@ -296,7 +368,11 @@ export default function Live() {
             currentUser ? (
               <>
               <div className="emoji">
-                <button onClick={handleEmojiPickerHideShow}><IoHappy/></button>
+                <button ref={addToMsgButton} onClick={handleAddToMsgHideShow}><IoAdd/></button>
+                <div className="addToMsg" ref={addToMsg}>
+                  <button onClick={handleImgHideShow}><IoCamera/></button>
+                  <button onClick={handleEmojiPickerHideShow}><IoHappy/></button>
+                </div>
                 {showEmojiPicker && <Picker onEmojiClick={handleEmojiClick}/>}
               </div>
               <form className="input-container" onSubmit={(event) => sendChat(event)}>
@@ -317,6 +393,28 @@ export default function Live() {
           }
         </div>
       </div>
+      
+    <div className="addImageChatUser" ref={imageToMsg}>
+      <input
+        type="file"
+        accept="image/jpeg"
+        onChange={(e) => {
+          uploadImage(e);
+        }}
+      />
+      {
+        baseImage !== "" ?
+        <>
+        <img src={baseImage} />
+        <div className="btns">
+          <button className="btn" onClick={handleImgHideShow}>x</button>
+          <button className="btn btn-primary" onClick={handleSendImgMsg}>Enviar</button>
+        </div>
+        </>
+        :
+        <button className="btn btn-primary" onClick={handleImgHideShow}>x</button>
+      }
+    </div>
     </div>
     </>
   )

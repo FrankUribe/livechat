@@ -74,3 +74,20 @@ module.exports.updateIsActive = async (req, res, next) => {
         next(error)
     }
 };
+
+module.exports.updateChatUser = async (req, res, next) => {
+    try {
+        const {id, name, email, phone, country, city} = req.body;
+        const user = await User.updateOne({ _id: id }, { 
+            email: email,
+            name: name,
+            phone: phone,
+            country: country,
+            city: city,
+        })
+        if (user)
+            return res.json({ msg: "Los datos se han actualizado exitosamente", status: true });
+    } catch (error) {
+        next(error)
+    }
+};

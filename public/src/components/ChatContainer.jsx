@@ -1,20 +1,37 @@
 import { useState, useEffect, useRef } from "react";
-import { IoSend, IoHappy, IoEllipsisVertical, IoPencil } from "react-icons/io5";
+import { IoSend, IoHappy, IoEllipsisVertical, IoPencil, IoAdd, IoCamera } from "react-icons/io5";
 import axios from "axios";
 import { v4 as uuidv4 } from "uuid";
 import Picker from 'emoji-picker-react';
-import { getMessagesRoute, sendMessageRoute, getLastMessagesRoute } from "../utils/APIRoutes";
+import { getMessagesRoute, sendMessageRoute, getLastMessagesRoute, updateChatUserRoute } from "../utils/APIRoutes";
 import Modal, { ModalHeader, ModalBody, ModalFooter } from '../components/modal';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function ChatContainer({ currentChat, currentUser, socket, fetchContacts }) {
   const [msg, setMsg] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [messages, setMessages] = useState([]);
   const scrollRef = useRef();
+  const addToMsg = useRef(null);
+  const imageToMsg = useRef(null)
+  const addToMsgButton = useRef(null);
+  const [stateAddToMsg, setStateAddToMsg] = useState(false);
+  const [stateImgToMsg, setStateImgToMsg] = useState(false);
   const textInput = useRef(null);
   const [arrivalMessage, setArrivalMessage] = useState(null);
   const [modal, setModal] = useState(false)
   const [chatData, setChatData] = useState(currentChat)
+  const [baseImage, setBaseImage] = useState("");
+  const toastOptions = {
+    position: "top-right",
+    autoClose: 4000,
+    hideProgressBar: true,
+    closeOnClick: true,
+    pauseOnHover: true,
+    draggable: true,
+    progress: undefined,
+  }
 
   //hook traer los mesajes del usuario actual (si existe) hacia un usuario de chat
   useEffect(async () => {
@@ -30,19 +47,32 @@ export default function ChatContainer({ currentChat, currentUser, socket, fetchC
   //hook cada vez que se de un click se cierre el modal, solo si el modal esta abierto
   useEffect(() => {
     const clickOutsideContent = (e) => {
-        if (e.target.className === 'modal active') {
-          setModal(false);
-        }
+      if (e.target.className === 'modal active') {
+        setModal(false);
+      }
     };
     window.addEventListener('click', clickOutsideContent);
     return () => {
-        window.removeEventListener('click', clickOutsideContent);
+      window.removeEventListener('click', clickOutsideContent);
     };
   }, [])
 
   //funcion al presionar boton de emoji, abre modal
   const handleEmojiPickerHideShow = () => {
     setShowEmojiPicker(!showEmojiPicker)
+  }
+  const handleAddToMsgHideShow = () => {
+    if (stateAddToMsg===true) {
+      addToMsg.current.style.display = 'none'
+      addToMsgButton.current.style.transform = 'rotate(0deg)'
+      addToMsgButton.current.style.transition = 'transform .2s ease-in-out'
+      handleEmojiPickerHide()
+    }else{
+      addToMsg.current.style.display = 'flex'
+      addToMsgButton.current.style.transform = 'rotate(45deg)'
+      addToMsgButton.current.style.transition = 'transform .2s ease-in-out'
+    }
+    setStateAddToMsg(!stateAddToMsg)
   }
   //funcion al presionar caja de texto, cierra modal emoji
   const handleEmojiPickerHide = () => {
@@ -101,7 +131,10 @@ export default function ChatContainer({ currentChat, currentUser, socket, fetchC
         from: currentChat._id,
         to: currentUser._id,
       });
-      const lastmsgByUser = lastm.data[0].message.text;
+      var lastmsgByUser = lastm.data[0].message.text;
+      if (lastmsgByUser.slice(0, 10) === 'data:image') {
+        lastmsgByUser = 'Imagen'
+      }
       const datetimeContactChat = lastm.data[0].updatedAt;
       //obtenemos los valores y los damos segun el id
       const d = new Date(datetimeContactChat);
@@ -143,12 +176,71 @@ export default function ChatContainer({ currentChat, currentUser, socket, fetchC
     scrollRef.current?.scrollIntoView({behaviur: "smooth"})
   }, [messages])
 
-  
+  //actualiza los valores de chatData
   const handleChangeChatData = (event) => {
     setChatData({ ...chatData, [event.target.name]: event.target.value })
   }
+  //envia los datos de chatdata al controlador
+  const saveChatData = async () =>{
+    const { data } = await axios.post(updateChatUserRoute, {
+      id: chatData._id,
+      name: chatData.name,
+      email: chatData.email,
+      phone: chatData.phone,
+      country: chatData.country,
+      city: chatData.city,
+    });
+    if (data.status === true) {
+      setModal(false);
+      setTimeout(() => {
+        toast.success(data.msg, toastOptions)
+      }, 1000);
+      currentChat.name = chatData.name
+    }else{
+      toast.error('Ha ocurrido un error', toastOptions)
+    }
+  }
+
   
+  const uploadImage = async (e) => {
+    const file = e.target.files[0];
+    const base64 = await convertBase64(file);
+    setBaseImage(base64);
+  };
+
+  const convertBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const fileReader = new FileReader();
+      fileReader.readAsDataURL(file);
+
+      fileReader.onload = () => {
+        resolve(fileReader.result);
+      };
+
+      fileReader.onerror = (error) => {
+        reject(error);
+      };
+    });
+  };
+
+  const handleImgHideShow = () => {
+    if (stateImgToMsg===true) {
+      imageToMsg.current.style.display = 'none'
+      setBaseImage("");
+    }else{
+      imageToMsg.current.style.display = 'flex'
+    }
+    setStateImgToMsg(!stateImgToMsg)
+  }
+  
+  const handleSendImgMsg = () => {
+    handleSendMsg(baseImage)
+    handleImgHideShow()
+    handleAddToMsgHideShow()
+  }
+
   return (
+    <>
     <div className="chat_contact">
       <div className="chatContainerAdmin">
         <div className="chat-header">
@@ -171,9 +263,24 @@ export default function ChatContainer({ currentChat, currentUser, socket, fetchC
                   }`}
                 >
                   <div className="content ">
-                    <p>{message.message}
-                    <small>{message.datetime}</small>
-                    </p>
+                    {
+                      message.message.slice(0, 10) === 'data:image' ?
+                      <>
+                        <img src={message.message} 
+                        style={{
+                          width: '100%',
+                          borderRadius: '10px'
+                        }}
+                        />
+                        <small>{message.datetime}</small>
+                      </>
+                      :
+                      <>
+                        <p>{message.message}
+                        <small>{message.datetime}</small>
+                        </p>
+                      </>
+                    }
                   </div>
                 </div>
               </div>
@@ -183,7 +290,11 @@ export default function ChatContainer({ currentChat, currentUser, socket, fetchC
         </div>
         <div className="chat-input">
           <div className="emoji">
-            <button onClick={handleEmojiPickerHideShow}><IoHappy/></button>
+            <button ref={addToMsgButton} onClick={handleAddToMsgHideShow}><IoAdd/></button>
+            <div className="addToMsg" ref={addToMsg}>
+              <button onClick={handleImgHideShow}><IoCamera/></button>
+              <button onClick={handleEmojiPickerHideShow}><IoHappy/></button>
+            </div>
             {showEmojiPicker && <Picker onEmojiClick={handleEmojiClick}/>}
           </div>
           <form className="input-container" onSubmit={(event) => sendChat(event)}>
@@ -201,35 +312,55 @@ export default function ChatContainer({ currentChat, currentUser, socket, fetchC
       </div>
       <div className="contactDetails">
         <div className="avatar">
-          <b>{currentChat.name.substring(0,2).toLowerCase()}</b>
+          <b>{chatData.name.substring(0,2).toLowerCase()}</b>
         </div>
         <div className="username">
-          <h4>{currentChat.name}</h4>
+          <h4><input className="inputr" name="name" value={chatData.name}
+              style={{
+                width: '100%',
+                textAlign: 'center',
+                border: 'none',
+                background: 'transparent',
+                fontSize: '22px',
+                padding: 0
+
+              }}
+              onChange={(e)=>handleChangeChatData(e)}/></h4>
         </div>
         <div className="email">
-          <span>{currentChat.email}</span>
+          <span><input className="inputr" name="email" value={chatData.email} 
+                style={{
+                  width: '100%',
+                  textAlign: 'center',
+                  border: 'none',
+                  background: 'transparent',
+                  fontSize: '18px',
+                  padding: 0,
+                  marginTop: '-10px'
+                }}
+                onChange={(e)=>handleChangeChatData(e)}/></span>
         </div>
         <div className="boxDetails">
           <table>
             <tbody>
               <tr>
                 <td width='80px'>Telefono</td>
-                <td>...</td>
+                <td><input className="inputr" name="phone" value={chatData.phone} onChange={(e)=>handleChangeChatData(e)}/></td>
               </tr>
               <tr>
                 <td width='80px'>Pais</td>
-                <td>...</td>
+                <td><input className="inputr" name="country" value={chatData.country} onChange={(e)=>handleChangeChatData(e)}/></td>
               </tr>
               <tr>
                 <td width='80px'>Ciudad</td>
-                <td>...</td>
+                <td><input className="inputr" name="city" value={chatData.city} onChange={(e)=>handleChangeChatData(e)}/></td>
               </tr>
             </tbody>
           </table>
-        </div>
+        </div>        
+        <button className="btn btn-primary" onClick={saveChatData}>Guardar</button>
       </div>
-      
-          
+                
       <Modal show={modal}>
         <div className="modal-dialog" style={{width: '300px'}}>
           <ModalHeader>
@@ -263,9 +394,33 @@ export default function ChatContainer({ currentChat, currentUser, socket, fetchC
           </ModalBody>
           <ModalFooter>
             <button className='btn' onClick={() => setModal(false)}>Cerrar</button>
+            <button className="btn btn-primary" onClick={saveChatData}>Guardar</button>
           </ModalFooter>
         </div>
       </Modal>
     </div>
+    <div className="addImage" ref={imageToMsg}>
+      <input
+        type="file"
+        accept="image/jpeg"
+        onChange={(e) => {
+          uploadImage(e);
+        }}
+      />
+      {
+        baseImage !== "" ?
+        <>
+        <img src={baseImage} />
+        <div className="btns">
+          <button className="btn" onClick={handleImgHideShow}>x</button>
+          <button className="btn btn-primary" onClick={handleSendImgMsg}>Enviar</button>
+        </div>
+        </>
+        :
+        <button className="btn btn-primary" onClick={handleImgHideShow}>x</button>
+      }
+    </div>
+    <ToastContainer/>
+    </>
   )
 }

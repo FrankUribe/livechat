@@ -5,9 +5,12 @@ const userRoutes = require("./routes/userRoutes");
 const messageRoutes = require("./routes/messageRoutes");
 const app = express();
 const socket = require("socket.io")
+const bodyParser = require('body-parser')
 require("dotenv").config();
 
 app.use(cors());
+app.use(bodyParser.json({limit: '5mb'}));
+app.use(bodyParser.urlencoded({limit: '5mb', extended: true}));
 app.use(express.json());
 
 mongoose

@@ -26,7 +26,10 @@ export default function Contacts({ contacts, changeChat }) {
       from: user,
       to: currentUser._id,
     });
-    const lastmsgByUser = lastm.data[0].message.text;
+    var lastmsgByUser = lastm.data[0].message.text;
+    if (lastmsgByUser.slice(0, 10) === 'data:image') {
+      lastmsgByUser = 'Imagen'
+    }
     const datetimeContactChat = lastm.data[0].updatedAt;
     
     const d = new Date(datetimeContactChat);
